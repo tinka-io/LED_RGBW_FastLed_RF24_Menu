@@ -23,7 +23,7 @@ RF24reciver rf = RF24reciver();
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("Welcome to LED_Ring_RGBW_FastLed_Menu");
+  Serial.println("Welcome to Tinka's LED RGBW FastLed RF24 Menu");
 
   stripe.setup();
 
