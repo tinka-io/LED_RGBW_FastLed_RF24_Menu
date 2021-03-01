@@ -17,16 +17,10 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Encoder Input
-#define CLK 3
-#define DT 4
-#define SW 2
+#include <Encoder.h>
+Encoder encoder(2, 3);
+#define SW 4
 #define PWR 5
-
-// static Variable
-mval_type myMenu::mval[max_mval];
-int myMenu::pos = 0;
-int myMenu::max_pos = max_mval;
-bool myMenu::user_input = false;
 
 void myMenu::setup()
 {
@@ -34,18 +28,15 @@ void myMenu::setup()
 
     Wire.setClock(1000000);
 
+    pinMode(6, OUTPUT);
+    digitalWrite(6, LOW);
+
     // Encoder Input
     pinMode(PWR, OUTPUT);
     digitalWrite(PWR, HIGH);
-    pinMode(CLK, INPUT);
-    pinMode(DT, INPUT_PULLUP);
-    pinMode(SW, INPUT);
+    pinMode(SW, INPUT_PULLUP);
 
     pinMode(LED_BUILTIN, OUTPUT);
-
-    attachInterrupt(digitalPinToInterrupt(CLK), handleEncoder, FALLING); // Envoder
-    attachInterrupt(digitalPinToInterrupt(SW), handleButton, FALLING); // Button
-    //attachInterrupt(digitalPinToInterrupt(DT), new_Encoder_val, RISING);
 
     // Display Output
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -66,15 +57,92 @@ void myMenu::setup()
 
 void myMenu::loop()
 {
-    //get_Button_val();
-    //getEncoder();
-
-    if (user_input)
+    if (!get_Encoder_Clicks() || !get_Button_val())
     {
-        user_input = false;
-        Serial.println("pos: " + String(pos) + " val: " + String(mval[pos].v));
         draw_menus();
     }
+}
+
+int myMenu::set_MenuVal_min_max(int Clicks)
+{
+    // Check if new Value is between min max
+    int newval = mval[pos].v + Clicks;
+    if (newval > mval[pos].max)
+    {
+        newval = mval[pos].max;
+    }
+    if (newval < mval[pos].min)
+    {
+        newval = mval[pos].min;
+    }
+
+    // set new Value
+    mval[pos].v = newval;
+
+    return newval;
+}
+
+int myMenu::get_Encoder_Clicks()
+{
+    // Get Encoder Position
+    long Steps = encoder.read();
+
+    // The Encoder have 80 Steps on 20 Clicks
+    static int Clicks;
+    if (Steps != 0 && Steps % 4 == 0)
+    {
+        Serial.print(Steps);
+
+        // devide Steps / 4 to get Clicks
+        Clicks = Steps / 4;
+
+        // detect Fast rotations and go faster with +-5 Clicks
+        static unsigned long lastClick = 0;
+        if (lastClick + 50 > millis())
+        {
+            Clicks = Clicks * 10;
+            Serial.print(" *10");
+        }
+        lastClick = millis();
+
+        Serial.println();
+
+        // change Value in Menu
+        set_MenuVal_min_max(Clicks);
+
+        // reset Encoder to 0
+        encoder.write(0);
+
+        return 0;
+    }
+
+    return -1;
+}
+
+int myMenu::get_Button_val()
+{
+    static double last = millis();
+    // read Button Pin with Debonce Time
+    if (last + 250 < millis() && !digitalRead(SW))
+    {
+        last = millis();
+
+        Serial.println("Button Pressed! " + String(pos) + " >= " + String(max_mval));
+
+        // itterate menu Curser Position
+        if (pos + 1 >= max_pos)
+        {
+            pos = 0;
+        }
+        else
+        {
+            pos++;
+        }
+
+        return 0;
+    }
+
+    return -1;
 }
 
 void myMenu::draw_menus()
@@ -182,118 +250,3 @@ void myMenu::draw_bpm()
     display.setCursor(64, 3 * size * 8);
     display.println("Dir: " + String(mval[7].v));
 }
-
-void myMenu::get_Button_val()
-{
-    static double last = millis();
-    if (last + 250 < millis())
-    {
-        if (!digitalRead(SW))
-        {
-            last = millis();
-            user_input = true;
-
-            Serial.println("Button Pressed! " + String(pos) + " >= " + String(max_mval));
-            if (pos + 1 >= max_pos)
-            {
-                pos = 0;
-            }
-            else
-            {
-                pos++;
-            }
-        }
-    }
-}
-
-void myMenu::new_Encoder_val(int step)
-{
-    // detect fast Rotation
-    static double last = 0;
-    double time = millis() - last;
-    last = millis();
-    if (time < 10)
-    {
-        step = step * 10;
-    }
-
-    // calculate Value
-    user_input = true;
-    int newval = mval[pos].v + step;
-    if (newval > mval[pos].max)
-    {
-        newval = mval[pos].max;
-    }
-    if (newval < mval[pos].min)
-    {
-        newval = mval[pos].min;
-    }
-    mval[pos].v = newval;
-}
-
-void myMenu::handleEncoder()
-{
-    cli();
-
-    bool led = digitalRead(LED_BUILTIN);
-    digitalWrite(LED_BUILTIN, !led);
-
-    int val = 0;
-    byte reading = PIND & B00011000;
-
-    if (reading == B00011000)
-    {
-        val = 1;
-    }
-    else if (reading == B00001000)
-    {
-        val = -1;
-    }
-
-    new_Encoder_val(val);
-    //draw_menus();
-
-    user_input = true;
-    
-    sei();
-}
-
-void myMenu::handleButton()
-{
-    cli();
-
-    //bool led = digitalRead(LED_BUILTIN);
-    //digitalWrite(LED_BUILTIN, !led);
-
-    if (pos + 1 >= max_pos)
-    {
-        pos = 0;
-    }
-    else
-    {
-        pos++;
-    }
-
-    //draw_menus();
-    sei();
-}
-/*
-volatile byte aFlag = 0;
-volatile byte bFlag = 0;
-volatile byte reading = 0;
-void myMenu::PinB()
-{
-    cli();                //stop interrupts happening before we read pin values
-    reading = PIND & 0xC; //read all eight pin values then strip away all but pinA and pinB's values
-    if (reading == B00001100 && bFlag)
-    { //check that we have both pins at detent (HIGH) and that we are expecting detent on this pin's rising edge
-        new_Encoder_val(-1);
-        bFlag = 0; //reset flags for the next turn
-        aFlag = 0; //reset flags for the next turn
-    }
-    else if (reading == B00001000){
-        aFlag = 1; //signal that we're expecting pinA to signal the transition to detent from free rotation
-        sei();         //restart interrupts
-    }
-}
-*/

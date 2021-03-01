@@ -10,12 +10,12 @@ Stripe stripe = Stripe();
 #define swpin 2
 #endif
 
-#define nowmenu
+#define wmenu
 #ifdef wmenu
 myMenu menu = myMenu();
 #endif
 
-#define timestamp
+#define notimestamp
 #ifdef timestamp
 RF24reciver rf = RF24reciver();
 #endif
@@ -23,7 +23,7 @@ RF24reciver rf = RF24reciver();
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("Welcome to LED_Ring_RGBW_FastLed_Menu");
+  Serial.println("Welcome to Tinka's LED RGBW FastLed RF24 Menu");
 
   stripe.setup();
 
@@ -168,7 +168,7 @@ void loop()
     //stripe.loop_color(255, 0, 0, 0, chance);
     stripe.loop_control(1, stripe.black, stripe.black, 64, 0, chance, false);
   }
-  else if (ts < 215.6+o)
+  else if (ts < 215.6 + o)
   {
     stripe.loop_fade_out(1000);
   }
@@ -317,13 +317,14 @@ void loop()
   switch (menu.mval[0].v)
   {
   case 0:
-    CRGBW color = CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v);
-    stripe.loop_color(color, 0);
+    CRGBW c = CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v);
+    stripe.loop_color(c, 0);
     break;
   case 1:
     stripe.loop_control(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v,
                         menu.mval[5].v, menu.mval[6].v, menu.mval[7].v);
     break;
   }
+  stripe.show();
 }
 #endif
