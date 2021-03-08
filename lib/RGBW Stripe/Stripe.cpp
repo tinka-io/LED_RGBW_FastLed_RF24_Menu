@@ -1,47 +1,6 @@
 #include "Stripe.h"
 #include <Arduino.h>
 
-CRGBW Stripe::get_color(int nr)
-{
-  CRGBW c;
-  switch (nr)
-  {
-  case 0:
-    c = black;
-    break;
-  case 1:
-    c = red;
-    break;
-  case 2:
-    c = green;
-    break;
-  case 3:
-    c = blue;
-    break;
-  case 4:
-    c = cyan;
-    break;
-  case 5:
-    c = yelo;
-    break;
-  case 6:
-    c = mage;
-    break;
-  case 7:
-    c = wred;
-    break;
-  case 8:
-    c = white;
-    break;
-  case 9:
-    c = www;
-    break;
-  default:
-    c = black;
-  }
-  return c;
-}
-
 int Stripe::reset_BPM(int i)
 {
   static u8 lasti = 0;
@@ -160,14 +119,14 @@ void Stripe::colorFillsmooth(CRGBW c, uint32_t bpm_ms, uint32_t curr_time, int n
     // LED behind the fade window
     if (i < lastfadeled)
     {
-      pix_col = black;
+      pix_col = black.val;
     }
     else
     {
       // LED in fron of Current Step
       if (CurrLED < i)
       {
-        pix_col = black;
+        pix_col = black.val;
       }
       else // LED get fade val
       {
@@ -357,12 +316,11 @@ void Stripe::loop_wabern(float fadetime, CRGBW c)
   }
 }
 
-
 bool Stripe::loop_control(u16 bpm, int fCol, int bCol, int BBlack, int fade, int gliter, bool dir)
 {
-  CRGBW c1 = get_color(fCol);
-  CRGBW c2 = get_color(bCol);
-  loop_control(bpm, c1, c2, BBlack, fade, gliter, dir);
+  fCol = constrain(fCol, 0, maxColor);
+  bCol = constrain(bCol, 0, maxColor);
+  loop_control(bpm, color[fCol].val, color[bCol].val, BBlack, fade, gliter, dir);
 }
 
 bool Stripe::loop_control(u16 bpm, CRGBW fCol, CRGBW bCol, int BBlack, int Fade, int glitter, bool dir)
@@ -414,190 +372,4 @@ bool Stripe::loop_control(u16 bpm, CRGBW fCol, CRGBW bCol, int BBlack, int Fade,
   }
 
   return startover;
-  //leds_gamma();
-  //leds_mirror();
-  //FastLED.show();
-}
-
-
-void Stripe::loop_serial()
-{
-  static int s = 1;
-  static int t = 1000;
-  static int z = 0;
-  static bool d;
-  static bool r = true;
-  static int b = 1;
-  static int p = 1;
-  static uint32_t last_tap;
-
-  if (Serial.available() > 0)
-  {
-    char in = Serial.read();
-    int inv = Serial.read() - 48;
-    Serial.println(String(in) + String(inv));
-
-    static int tdiff = 1;
-    switch (in)
-    {
-    case 't':
-      if (0 < inv && inv < 16)
-      {
-        tdiff = inv;
-        t = t / tdiff;
-      }
-      else
-      {
-        t = millis() - last_tap;
-        t = t / tdiff;
-        last_tap = millis();
-      }
-      break;
-    case 's':
-      z = map(inv, 0, 9, 0, 64);
-      break;
-    case 'd':
-      d = !d;
-      break;
-    case 'c':
-      s = inv;
-      r = false;
-      break;
-    case 'r':
-      r = !r;
-      break;
-    case 'b':
-      b = inv;
-      break;
-    case 'p':
-      p = inv;
-      break;
-    default:
-      Serial.println("no cmd");
-    }
-  }
-
-  CRGBW c;
-  switch (s)
-  {
-  case 0:
-    c = black;
-    break;
-  case 1:
-    c = mage;
-    break;
-  case 2:
-    c = cyan;
-    break;
-  case 3:
-    c = red;
-    break;
-  case 4:
-    c = green;
-    break;
-  case 5:
-    c = blue;
-    break;
-  case 6:
-    c = yelo;
-    break;
-  }
-
-  static int off = 0;
-  static int pc = 0;
-  int zt = z;
-  if (off < b)
-  {
-    c = black;
-  }
-  else
-  {
-    zt = 0;
-  }
-
-  /*
-  if (colorFillsmooth(c, t, 5, d))
-  {
-    off++;
-    pc++;
-    if (off > b)
-    {
-      off = 0;
-    }
-    if (r)
-    {
-      s = map(random8(), 0, 255, 1, 6);
-    }
-  }
-  */
-
-  if (zt > 0)
-  {
-    addGlitter(zt);
-  }
-  if (p == 1)
-  {
-    if (pc == 4)
-      pc = 0;
-    //float pf = NUM_LEDS / 4;
-    set_part_color(pc * 4, (1 * pc) * 4, red, black, 64, 32);
-  }
-
-  FastLED.show();
-}
-
-void Stripe::loop_random()
-{
-  static bool off;
-
-  int s = random8();
-  int t = random8();
-  int w = random8();
-  int z = random8();
-  int d = random8();
-
-  s = map(s, 0, 255, 0, 5);
-  w = map(w, 0, 255, 0, NUM_LEDS);
-  z = map(z, 0, 255, 0, 20);
-  d = d % 2;
-
-  CRGBW c;
-
-  switch (s)
-  {
-  case 0:
-    c = yelo;
-    break;
-  case 1:
-    c = mage;
-    break;
-  case 2:
-    c = cyan;
-    break;
-  case 3:
-    c = red;
-    break;
-  case 4:
-    c = green;
-    break;
-  case 5:
-    c = blue;
-    break;
-  }
-
-  if (off)
-  {
-    z = 0;
-    t = map(t, 0, 255, 1000, 1000);
-    c = black;
-  }
-  else
-  {
-    z = 0;
-    t = map(t, 0, 255, 1000, 1000);
-    if (z < 16)
-      z = 0;
-  }
-
-  off = !off;
 }

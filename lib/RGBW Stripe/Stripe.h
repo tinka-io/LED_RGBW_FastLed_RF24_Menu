@@ -24,31 +24,44 @@ struct CRGBW
   };
   CRGBW() {}
 
-  CRGBW(uint8_t rd, uint8_t grn, uint8_t blu, uint8_t wht)
+  CRGBW(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _w)
   {
-    r = rd;
-    g = grn;
-    b = blu;
-    w = wht;
+    r = _r;
+    g = _g;
+    b = _b;
+    w = _w;
   }
 
-  /*
-    inline void operator = (const CRGBW c) __attribute__((always_inline)) {
+  inline void operator=(const CRGBW c) __attribute__((always_inline))
+  {
     this->r = c.r;
     this->g = c.g;
     this->b = c.b;
     this->w = c.w;
-  }*/
+  }
+
+  inline uint16_t getRGBWsize(uint16_t nleds)
+  {
+    uint16_t nbytes = nleds * 4;
+    if (nbytes % 3 > 0)
+      return nbytes / 3 + 1;
+    else
+      return nbytes / 3;
+  }
 };
 
-inline uint16_t getRGBWsize(uint16_t nleds)
+struct TypeColor
 {
-  uint16_t nbytes = nleds * 4;
-  if (nbytes % 3 > 0)
-    return nbytes / 3 + 1;
-  else
-    return nbytes / 3;
-}
+  CRGBW val;
+  String name;
+
+  TypeColor(){};
+  TypeColor(CRGBW color, String Name)
+  {
+    val = color;
+    name = Name;
+  }
+};
 
 #define maxColor 11
 class Stripe
@@ -66,7 +79,7 @@ public:
   void setup()
   {
     // Fast LED
-    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(ledsRGB, getRGBWsize(NUM_LEDS + 1));
+    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(ledsRGB, leds->getRGBWsize(NUM_LEDS + 1));
   }
   void show()
   {
@@ -75,23 +88,29 @@ public:
     FastLED.show();
   }
 
-  CRGBW black = CRGBW(0, 0, 0, 0);
-  CRGBW red = CRGBW(225, 0, 0, 0);
-  CRGBW wred = CRGBW(255, 0, 0, 25);
-  CRGBW dred = CRGBW(32, 0, 0, 0);
-  CRGBW green = CRGBW(0, 255, 0, 25);
-  CRGBW dgreen = CRGBW(0, 255, 0, 0);
-  CRGBW blue = CRGBW(0, 0, 255, 25);
-  CRGBW dblue = CRGBW(0, 0, 255, 0);
-  CRGBW cyan = CRGBW(0, 255, 100, 25);
-  CRGBW orang = CRGBW(100, 20, 0, 0);
-  CRGBW yelo = CRGBW(255, 100, 0, 0);
-  CRGBW mage = CRGBW(50, 0, 255, 50);
-  CRGBW pink = CRGBW(255, 0, 150, 25);
-  CRGBW white = CRGBW(0, 0, 0, 255);
-  CRGBW www = CRGBW(255, 255, 255, 255);
+  TypeColor black = {CRGBW(0, 0, 0, 0), "black"};
+  TypeColor red = {CRGBW(225, 0, 0, 0), "red"};
+  TypeColor green = {CRGBW(0, 255, 0, 0), "green"};
+  TypeColor blue = {CRGBW(0, 0, 255, 0), "blue"};
+  TypeColor white = {CRGBW(0, 0, 0, 255), "white"}; //5
+  TypeColor cyan = {CRGBW(0, 255, 100, 25), "cyan"};
+  TypeColor orange = {CRGBW(100, 20, 0, 0), "orange"};
+  TypeColor yellow = {CRGBW(255, 100, 0, 0), "yellow"};
+  TypeColor magenta = {CRGBW(50, 0, 255, 50), "magenta"};
+  TypeColor pink = {CRGBW(255, 0, 150, 25), "pink"}; // 10
+  TypeColor wred = {CRGBW(255, 0, 0, 25), "wred"};
+  TypeColor wgreen = {CRGBW(0, 255, 0, 25), "wgreen"};
+  TypeColor wblue = {CRGBW(0, 0, 64, 0), "wblue"};
+  TypeColor dred = {CRGBW(64, 0, 0, 0), "dred"};
+  TypeColor dgreen = {CRGBW(0, 64, 0, 0), "dgreen"}; // 15
+  TypeColor dblue = {CRGBW(0, 0, 64, 0), "dblue"};
+  TypeColor full = {CRGBW(255, 255, 255, 255), "full"}; //17
 
-  CRGBW get_color(int nr);
+  static const int maxColors = 17;
+  TypeColor color[maxColors]{
+      black, red, green, blue, white, cyan, orange, yellow, magenta, pink,
+      wred, wgreen, wblue, dred, dblue, dgreen, full};
+
   int reset_BPM(int i);
 
 private:
