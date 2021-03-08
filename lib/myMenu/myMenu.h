@@ -32,10 +32,12 @@ private:
 
     // Staic Color
     void set_mval_limits_static_color();
+    void set_mal_default_values_static_color();
     void draw_static_color();
 
     // BPM Programms
     void set_mval_limits_bpm();
+    void set_mal_default_values_bpm();
     void draw_bpm();
     void draw_menus();
 

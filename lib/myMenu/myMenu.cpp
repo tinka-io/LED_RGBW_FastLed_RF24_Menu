@@ -13,14 +13,25 @@
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define OLED_RESET -1    // Reset pin # (or -1 if sharing Arduino reset pin)
+#define display_pwr 4
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Encoder Input
+#define micro
+
 #include <Encoder.h>
+#ifdef nano
 Encoder encoder(2, 3);
 #define SW 4
 #define PWR 5
+#endif
+
+#ifdef micro
+Encoder encoder(1, 0);
+#define SW 7
+#define encoder_pwr 6
+#endif
 
 void myMenu::setup()
 {
@@ -32,13 +43,16 @@ void myMenu::setup()
     digitalWrite(6, LOW);
 
     // Encoder Input
-    pinMode(PWR, OUTPUT);
-    digitalWrite(PWR, HIGH);
+    pinMode(encoder_pwr, OUTPUT);
+    digitalWrite(encoder_pwr, HIGH);
     pinMode(SW, INPUT_PULLUP);
-
     pinMode(LED_BUILTIN, OUTPUT);
+    encoder.write(0);
 
     // Display Output
+    pinMode(display_pwr, OUTPUT);
+    digitalWrite(display_pwr, HIGH);
+
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     display.setTextColor(SSD1306_WHITE);
     display.clearDisplay();
@@ -51,7 +65,8 @@ void myMenu::setup()
     display.clearDisplay();
     display.setTextSize(1); // Draw 2X-scale text
     display.setCursor(0, 0);
-    display.println("Nora, alles gute zum Geburtstag! Hoffent-\nlich begleite ich dich eine lange weile!");
+    //display.println("Nora, alles gute zum Geburtstag! Hoffent-\nlich begleite ich dich eine lange weile!");
+    display.println("Laries super Licht\nmade from Tinka Vey");
     display.display();
 }
 
@@ -91,21 +106,16 @@ int myMenu::get_Encoder_Clicks()
     static int Clicks;
     if (Steps != 0 && Steps % 4 == 0)
     {
-        Serial.print(Steps);
-
         // devide Steps / 4 to get Clicks
         Clicks = Steps / 4;
 
         // detect Fast rotations and go faster with +-5 Clicks
         static unsigned long lastClick = 0;
-        if (lastClick + 50 > millis())
+        if (lastClick + 25 > millis())
         {
             Clicks = Clicks * 10;
-            Serial.print(" *10");
         }
         lastClick = millis();
-
-        Serial.println();
 
         // change Value in Menu
         set_MenuVal_min_max(Clicks);
@@ -127,8 +137,6 @@ int myMenu::get_Button_val()
     {
         last = millis();
 
-        Serial.println("Button Pressed! " + String(pos) + " >= " + String(max_mval));
-
         // itterate menu Curser Position
         if (pos + 1 >= max_pos)
         {
@@ -149,15 +157,33 @@ void myMenu::draw_menus()
 {
     display.clearDisplay();
 
+    // check if Menu changed
+    static int lastmenuindex = -1;
+    static bool changed = true;
+    if (lastmenuindex != mval[0].v)
+    {
+        lastmenuindex = mval[0].v;
+        changed = true;
+    }
+
     switch (mval[0].v)
     {
+    case 0:
+        if (changed)
+        {
+            set_mval_limits_static_color();
+            set_mal_default_values_static_color();
+        }
+        draw_static_color();
+        break;
     case 1:
-        set_mval_limits_bpm();
+        if (changed)
+        {
+            set_mval_limits_bpm();
+            set_mal_default_values_bpm();
+        }
         draw_bpm();
         break;
-    default: // also 0
-        set_mval_limits_static_color();
-        draw_static_color();
     }
 
     display.display();
@@ -171,6 +197,14 @@ void myMenu::set_mval_limits_static_color()
         mval[i].min = 0;
         mval[i].max = 255;
     }
+}
+
+void myMenu::set_mal_default_values_static_color()
+{
+    mval[1].v = 0;
+    mval[2].v = 100;
+    mval[3].v = 255;
+    mval[4].v = 0;
 }
 
 void myMenu::draw_static_color()
@@ -224,6 +258,10 @@ void myMenu::set_mval_limits_bpm()
     mval[7].max = 1;
 }
 
+void myMenu::set_mal_default_values_bpm(){
+
+}
+
 void myMenu::draw_bpm()
 {
     const int size = 1;
@@ -243,7 +281,7 @@ void myMenu::draw_bpm()
     display.setCursor(00, 2 * size * 8);
     display.println("BBl: " + String(mval[4].v));
     display.setCursor(64, 2 * size * 8);
-    display.println("Str: " + String(mval[5].v));
+    display.println("Fad: " + String(mval[5].v));
 
     display.setCursor(00, 3 * size * 8);
     display.println("Gli: " + String(mval[6].v));

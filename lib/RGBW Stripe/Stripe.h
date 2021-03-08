@@ -3,11 +3,11 @@
 
 #include <FastLED.h>
 
-#define NUM_LEDS 32
-#define ROUND 16
-#define mirror
+#define NUM_LEDS 20
+#define ROUND 20
+#define nomirror
 
-#define DATA_PIN 7
+#define DATA_PIN 15
 
 struct CRGBW
 {
@@ -71,7 +71,7 @@ public:
   void show()
   {
     //leds_gamma();
-    leds_mirror();
+    //leds_mirror();
     FastLED.show();
   }
 

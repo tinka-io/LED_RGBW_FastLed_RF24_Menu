@@ -36,6 +36,8 @@ CRGBW Stripe::get_color(int nr)
   case 9:
     c = www;
     break;
+  default:
+    c = black;
   }
   return c;
 }
@@ -367,8 +369,9 @@ bool Stripe::loop_control(u16 bpm, CRGBW fCol, CRGBW bCol, int BBlack, int Fade,
 {
   static int off = 0;
 
-  uint32_t bpm_ms = 60000 / bpm / (BBlack + 1);
-  static uint32_t time;
+  //uint32_t bpm_ms = 60000 / bpm / (BBlack + 1);
+  uint32_t bpm_ms = 60000 / bpm;
+  static uint32_t time = 0;
   bool startover = false;
   if (time + bpm_ms < millis() || resetBPM)
   {

@@ -313,14 +313,16 @@ void loop()
 {
   menu.loop();
 
-  //stripe.menu_loop(menu.mval, menu.max_mval);
+
   switch (menu.mval[0].v)
   {
   case 0:
-    CRGBW c = CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v);
-    stripe.loop_color(c, 0);
+    //CRGBW c =CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v);
+    stripe.loop_color(CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v), 0);
     break;
   case 1:
+    stripe.reset_BPM(1);
+    //stripe.loop_control(659, stripe.cyan, stripe.black, 1, 0, 0, false);
     stripe.loop_control(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v,
                         menu.mval[5].v, menu.mval[6].v, menu.mval[7].v);
     break;
