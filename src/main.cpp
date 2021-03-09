@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "Stripe.h"
-#include "myMenu.h"
+#include "Menu.h"
 #include "RF24_reciver.hpp"
 
 Stripe stripe = Stripe();
@@ -10,15 +10,47 @@ Stripe stripe = Stripe();
 #define swpin 2
 #endif
 
-#define nowmenu
+#define wmenu
 #ifdef wmenu
-myMenu menu = myMenu();
+Menu menu;
 #endif
 
-#define timestamp
+#define notimestamp
 #ifdef timestamp
 RF24reciver rf = RF24reciver();
 #endif
+
+void fill_menu()
+{
+  static const int max_pages = 1;
+  static MenuPage pages[max_pages];
+
+  pages[0] = MenuPage("static color", 4);
+  for (int i = 0; i < 4; i++)
+  {
+    Setting *s = &pages[0].settings[i];
+    s->min = 0;
+    s->max = 255;
+    s->value = 0;
+  }
+  pages[0].settings[0].name = "red";
+  pages[0].settings[0].position.row = 1;
+  pages[0].settings[0].position.x = 0;
+
+  pages[0].settings[1].name = "green";
+  pages[0].settings[1].position.row = 1;
+  pages[0].settings[1].position.x = 64;
+
+  pages[0].settings[2].name = "blue";
+  pages[0].settings[2].position.row = 2;
+  pages[0].settings[2].position.x = 0;
+
+  pages[0].settings[3].name = "white";
+  pages[0].settings[3].position.row = 2;
+  pages[0].settings[3].position.x = 64;
+
+  menu = Menu(pages, max_pages);
+}
 
 void setup()
 {
@@ -32,13 +64,44 @@ void setup()
 #endif
 
 #ifdef wmenu
-  menu.setup();
+  fill_menu();
+  menu.setup("This menu is desiged\nby Luci and Tinka");
 #endif
 
 #ifdef timestamp
   rf.setup();
 #endif
 }
+
+#ifdef wmenu
+void loop()
+{
+  menu.loop();
+  MenuPage *p;
+  CRGBW color;
+  switch (menu.page_index)
+  {
+  case 0:
+    p = (menu.pages+menu.page_index);
+    color = CRGBW(p->settings[0].value, 
+                        p->settings[1].value,
+                        p->settings[2].value, 
+                        p->settings[3].value);
+    stripe.loop_color(color, 0);
+    break;
+  case 1:
+    p = (menu.pages+menu.page_index);
+    stripe.loop_control(p->settings[0].value,
+                        p->settings[1].value,
+                        p->settings[2].value,
+                        p->settings[3].value,
+                        p->settings[4].value,
+                        p->settings[5].value,
+                        p->settings[6].value);
+    break;
+  }
+}
+#endif
 
 #ifdef schlitten
 void loop()
@@ -168,7 +231,7 @@ void loop()
     //stripe.loop_color(255, 0, 0, 0, chance);
     stripe.loop_control(1, stripe.black, stripe.black, 64, 0, chance, false);
   }
-  else if (ts < 215.6+o)
+  else if (ts < 215.6 + o)
   {
     stripe.loop_fade_out(1000);
   }
@@ -305,25 +368,5 @@ void loop()
   }
 
   stripe.show();
-}
-#endif
-
-#ifdef wmenu
-void loop()
-{
-  menu.loop();
-
-  //stripe.menu_loop(menu.mval, menu.max_mval);
-  switch (menu.mval[0].v)
-  {
-  case 0:
-    CRGBW color = CRGBW(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v);
-    stripe.loop_color(color, 0);
-    break;
-  case 1:
-    stripe.loop_control(menu.mval[1].v, menu.mval[2].v, menu.mval[3].v, menu.mval[4].v,
-                        menu.mval[5].v, menu.mval[6].v, menu.mval[7].v);
-    break;
-  }
 }
 #endif

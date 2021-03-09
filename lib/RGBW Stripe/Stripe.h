@@ -119,8 +119,8 @@ public:
   void loop_wabern(float bpm, CRGBW color);
 
   // for menu
-  bool loop_control(u16 bpm, int fCol, int bCol, int BBlack, int fade, int gliter, bool dir);
-  bool loop_control(u16 bpm, CRGBW fCol, CRGBW bCol, int BBlack, int fade, int gliter, bool dir);
+  bool loop_control(int bpm, int fCol, int bCol, int BBlack, int fade, int gliter, int dir);
+  bool loop_control(int bpm, CRGBW fCol, CRGBW bCol, int BBlack, int fade, int gliter, int dir);
 
   // experimental
   void loop_serial();

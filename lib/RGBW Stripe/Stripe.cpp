@@ -356,14 +356,14 @@ void Stripe::loop_wabern(float fadetime, CRGBW c)
 }
 
 
-bool Stripe::loop_control(u16 bpm, int fCol, int bCol, int BBlack, int fade, int gliter, bool dir)
+bool Stripe::loop_control(int bpm, int fCol, int bCol, int BBlack, int fade, int gliter, int dir)
 {
   CRGBW c1 = get_color(fCol);
   CRGBW c2 = get_color(bCol);
   loop_control(bpm, c1, c2, BBlack, fade, gliter, dir);
 }
 
-bool Stripe::loop_control(u16 bpm, CRGBW fCol, CRGBW bCol, int BBlack, int Fade, int glitter, bool dir)
+bool Stripe::loop_control(int bpm, CRGBW fCol, CRGBW bCol, int BBlack, int Fade, int glitter, int dir)
 {
   static int off = 0;
 
