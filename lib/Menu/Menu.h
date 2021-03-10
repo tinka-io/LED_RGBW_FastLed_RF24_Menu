@@ -9,8 +9,8 @@
 #define SW_PIN 7
 #define ENCODER_PWR_PIN 6
 
-const uint8_t maxSettings = 16;
-const uint8_t maxPages = 8;
+const uint8_t maxSettings = 8;
+const uint8_t maxPages = 2;
 
 struct typePosition
 {
@@ -21,7 +21,7 @@ struct typePosition
 class Setting
 {
 public:
-    Setting() {};
+    Setting(){};
     Setting(int id, int _start_value, int _min, int _max, typePosition _position)
     {
         id = id;
@@ -47,7 +47,7 @@ public:
 class MenuPage
 {
 public:
-    MenuPage() {};
+    MenuPage(){};
     MenuPage(String _title, int _used_settings)
     {
         title = _title;
@@ -57,35 +57,39 @@ public:
 
     String title;
     int used_settings;
-    Setting settings[16];
+    Setting settings[maxSettings];
 };
 
 class Menu
 {
 public:
-    Menu() {};
-    Menu(MenuPage *_pages, int _used_pages) {
+    Menu(){};
+    Menu(MenuPage *_pages[], int _used_pages)
+    {
         used_pages = _used_pages;
-        pages = _pages;
+        for (int i = 0; i < used_pages; i++)
+        {
+            //pages[i] = _pages[i];
+        }
     };
 
     void setup(String welcome_message);
     void loop();
 
-    MenuPage *pages;
+    MenuPage pages[2];
     int used_pages;
     int page_index;
 
 private:
     uint8_t front_size = 1;
-    uint8_t line_height = 8*front_size;
+    uint8_t line_height = 8 * front_size;
     void setup_display(String welcome_message);
     void setup_encoder();
 
     int get_Encoder_Rotation();
     int get_Encoder_Button();
-    void set_value(MenuPage *page, int value);
-    void draw(MenuPage *page);
+    void set_value(int value);
+    void draw();
 
     int curser_position;
 };

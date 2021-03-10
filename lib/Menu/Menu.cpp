@@ -47,7 +47,7 @@ void Menu::loop()
 {
     if (get_Encoder_Rotation() == 0 || get_Encoder_Button() == 0)
     {
-        draw(pages + page_index);
+        draw();
     }
 }
 
@@ -103,7 +103,7 @@ int Menu::get_Encoder_Rotation()
         lastClick = millis();
 
         // change Value in Menu
-        set_value(pages + page_index, Clicks);
+        set_value(Clicks);
 
         // reset Encoder to 0
         encoder.write(0);
@@ -124,7 +124,7 @@ int Menu::get_Encoder_Button()
         last = millis();
 
         curser_position++;
-        if (curser_position > (pages + page_index)->used_settings)
+        if (curser_position > pages[page_index].used_settings)
         {
             curser_position = 0;
         }
@@ -134,29 +134,29 @@ int Menu::get_Encoder_Button()
     return -1;
 }
 
-void Menu::set_value(MenuPage *page, int value)
+void Menu::set_value(int value)
 {
     if (curser_position == 0)
     {
-        page_index = constrain(value, 0, used_pages);
+        page_index = constrain(value, 0, used_pages-1);
+        Serial.println(page_index);
     }
     else
     {
-        Setting *s = &page->settings[curser_position];
-        s->value = constrain(value, s->min, s->max);
+        pages[page_index].settings[curser_position-1].set_value(value);
     }
 }
 
-void Menu::draw(MenuPage *page)
+void Menu::draw()
 {
     display.clearDisplay();
 
     display.setCursor(0, 0);
-    display.println(page->title);
+    display.println(pages[page_index].title);
 
-    for (int i = 0; i < page->used_settings; i++)
+    for (int i = 0; i < pages[page_index].used_settings; i++)
     {
-        Setting *s = &page->settings[i];
+        Setting *s = &pages[page_index].settings[i];
         display.setCursor(s->position.x, 1 * s->position.row * line_height);
         display.println(s->name + ": " + String(s->value));
     }

@@ -3,11 +3,11 @@
 
 #include <FastLED.h>
 
-#define NUM_LEDS 32
-#define ROUND 16
+#define NUM_LEDS 20
+#define ROUND 20
 #define mirror
 
-#define DATA_PIN 7
+#define DATA_PIN 15
 
 struct CRGBW
 {

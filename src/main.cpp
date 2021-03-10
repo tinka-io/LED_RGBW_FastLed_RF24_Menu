@@ -12,7 +12,7 @@ Stripe stripe = Stripe();
 
 #define wmenu
 #ifdef wmenu
-Menu menu;
+Menu menu = Menu(NULL, 2);
 #endif
 
 #define notimestamp
@@ -22,34 +22,78 @@ RF24reciver rf = RF24reciver();
 
 void fill_menu()
 {
-  static const int max_pages = 1;
-  static MenuPage pages[max_pages];
-
-  pages[0] = MenuPage("static color", 4);
+  menu.pages[0] = MenuPage("Static Color", 4);
   for (int i = 0; i < 4; i++)
   {
-    Setting *s = &pages[0].settings[i];
-    s->min = 0;
-    s->max = 255;
-    s->value = 0;
+    menu.pages[0].settings[i].min = 0;
+    menu.pages[0].settings[i].max = 255;
+    menu.pages[0].settings[i].value = 0;
   }
-  pages[0].settings[0].name = "red";
-  pages[0].settings[0].position.row = 1;
-  pages[0].settings[0].position.x = 0;
+  menu.pages[0].settings[0].name = "red  ";
+  menu.pages[0].settings[0].position.row = 1;
+  menu.pages[0].settings[0].position.x = 0;
 
-  pages[0].settings[1].name = "green";
-  pages[0].settings[1].position.row = 1;
-  pages[0].settings[1].position.x = 64;
+  menu.pages[0].settings[1].name = "green";
+  menu.pages[0].settings[1].position.row = 1;
+  menu.pages[0].settings[1].position.x = 64;
 
-  pages[0].settings[2].name = "blue";
-  pages[0].settings[2].position.row = 2;
-  pages[0].settings[2].position.x = 0;
+  menu.pages[0].settings[2].name = "blue ";
+  menu.pages[0].settings[2].position.row = 2;
+  menu.pages[0].settings[2].position.x = 0;
 
-  pages[0].settings[3].name = "white";
-  pages[0].settings[3].position.row = 2;
-  pages[0].settings[3].position.x = 64;
+  menu.pages[0].settings[3].name = "white";
+  menu.pages[0].settings[3].position.row = 2;
+  menu.pages[0].settings[3].position.x = 64;
 
-  menu = Menu(pages, max_pages);
+  menu.pages[1] = MenuPage("BPM", 7);
+  menu.pages[1].settings[0].name = "bpm:";
+  menu.pages[1].settings[0].min = 1;
+  menu.pages[1].settings[0].max = 320;
+  menu.pages[1].settings[0].value = 20;
+  menu.pages[1].settings[0].position.row = 0;
+  menu.pages[1].settings[0].position.x = 64;
+
+  menu.pages[1].settings[1].name = "fc:";
+  menu.pages[1].settings[1].min = 0;
+  menu.pages[1].settings[1].max = 10; // TODO stripe.max_color;
+  menu.pages[1].settings[1].value = 1;
+  menu.pages[1].settings[1].position.row = 1;
+  menu.pages[1].settings[1].position.x = 0;
+
+  menu.pages[1].settings[2].name = "bc:";
+  menu.pages[1].settings[2].min = 0;
+  menu.pages[1].settings[2].max = 10; // TODO stripe.max_color;
+  menu.pages[1].settings[2].value = 4;
+  menu.pages[1].settings[2].position.row = 2;
+  menu.pages[1].settings[2].position.x = 0;
+
+  menu.pages[1].settings[3].name = "offB:";
+  menu.pages[1].settings[3].min = 0;
+  menu.pages[1].settings[3].max = 16;
+  menu.pages[1].settings[3].value = 1;
+  menu.pages[1].settings[3].position.row = 3;
+  menu.pages[1].settings[3].position.x = 0;
+
+  menu.pages[1].settings[4].name = "f:";
+  menu.pages[1].settings[4].min = 0;
+  menu.pages[1].settings[4].max = ROUND;
+  menu.pages[1].settings[4].value = 5;
+  menu.pages[1].settings[4].position.row = 1;
+  menu.pages[1].settings[4].position.x = 80;
+
+  menu.pages[1].settings[5].name = "d:";
+  menu.pages[1].settings[5].min = 0;
+  menu.pages[1].settings[5].max = 1;
+  menu.pages[1].settings[5].value = 0;
+  menu.pages[1].settings[5].position.row = 2;
+  menu.pages[1].settings[5].position.x = 80;
+
+  menu.pages[1].settings[6].name = "g:";
+  menu.pages[1].settings[6].min = 0;
+  menu.pages[1].settings[6].max = 100;
+  menu.pages[1].settings[6].value = 0;
+  menu.pages[1].settings[6].position.row = 3;
+  menu.pages[1].settings[6].position.x = 80;
 }
 
 void setup()
@@ -82,24 +126,26 @@ void loop()
   switch (menu.page_index)
   {
   case 0:
-    p = (menu.pages+menu.page_index);
-    color = CRGBW(p->settings[0].value, 
-                        p->settings[1].value,
-                        p->settings[2].value, 
-                        p->settings[3].value);
+    p = (&menu.pages[menu.page_index]);
+    color = CRGBW(p->settings[0].value,
+                  p->settings[1].value,
+                  p->settings[2].value,
+                  p->settings[3].value);
     stripe.loop_color(color, 0);
     break;
   case 1:
-    p = (menu.pages+menu.page_index);
+    p = (&menu.pages[menu.page_index]);
     stripe.loop_control(p->settings[0].value,
                         p->settings[1].value,
                         p->settings[2].value,
                         p->settings[3].value,
                         p->settings[4].value,
-                        p->settings[5].value,
-                        p->settings[6].value);
+                        p->settings[6].value,
+                        p->settings[5].value);
     break;
   }
+
+  stripe.show();
 }
 #endif
 
